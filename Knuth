@@ -1,0 +1,74 @@
+import tkinter as tk 
+from tkinter import messagebox
+
+def knuth_sequence(n):
+    """
+    Computes the Knuth sequence of length n.
+    """
+    sequence = [1]
+    for i in range(1, n):
+        prev = sequence[-1]
+        if prev not in sequence[:-1]:
+            sequence.append(0)
+        else:
+            index = len(sequence) - 2 - sequence[::-1][1:].index(prev)
+            sequence.append(len(sequence) - 1 - index)
+    return sequence
+
+class KnuthSequenceGame:
+    def __init__(self, master, length=10):
+        self.master = master
+        self.length = length
+        self.sequence = knuth_sequence(self.length)
+        self.buttons = []
+        self.moves = 0
+        self.create_widgets()
+
+    def create_widgets(self):
+        # buttons
+        for i in range(self.length):
+            button = tk.Button(self.master, text=str(self.sequence[i]),font=5, command=lambda i=i: self.move(i))
+            button.grid(row=i // 5, column=i % 5)
+            self.buttons.append(button)
+
+        # moves label
+        self.moves_label = tk.Label(self.master, text="Moves: 0")
+        self.moves_label.grid(row=self.length // 5 + 1, column=0, columnspan=5)
+
+        # solve button
+        solve_button = tk.Button(self.master, text="Solve", command=self.solve)
+        solve_button.grid(row=self.length // 5 + 2, column=0, columnspan=5)
+
+    def move(self, index):
+        # Swap the buttons
+        if index > 0:
+            self.buttons[index], self.buttons[index-1] = self.buttons[index-1], self.buttons[index]
+            self.buttons[index].grid(row=index // 5, column=index % 5)
+            self.buttons[index-1].grid(row=(index-1) // 5, column=(index-1) % 5)
+            
+            self.moves += 1
+            self.moves_label.config(text="Moves: {}".format(self.moves))
+            if self.buttons == sorted(self.buttons, key=lambda b: int(b["text"])):
+                # If the buttons are in ascending order, the game is won
+                self.win()
+
+    
+    def win(self):
+        # Display a message box to show that the game is won
+        tk.messagebox.showinfo("مبروك!", "لقد حلَّيت اللعبة")
+
+
+    def solve(self):
+        # Sort the buttons in ascending order and move them accordingly
+        for i, button in enumerate(sorted(self.buttons, key=lambda b: int(b["text"]))):
+            current_index = self.buttons.index(button)
+            if current_index > i:
+                for _ in range(current_index - i):
+                    self.move(current_index-1)
+        self.win()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("Knuth Sequence Game")
+    game = KnuthSequenceGame(root)
+    root.mainloop()
